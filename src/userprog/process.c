@@ -34,11 +34,41 @@ struct exec_helper
  };
 
 
+//## This goes in process.c
+////## You should really understand how this code works so you know how to use it!
+////## Read through it carefully.
+////## push (kpage, &ofs, &x, sizeof x), kpage is created in setup_stack....
+////## x is all the values argv, argc, and null (you need a null on the stack!)
+////## Be careful of hte order of argv! Check the stack example
+//
+///* Pushes the SIZE bytes in BUF onto the stack in KPAGE, whose
+//   page-relative stack pointer is *OFS, and then adjusts *OFS
+//      appropriately.  The bytes pushed are rounded to a 32-bit
+//         boundary.
+//
+//            If successful, returns a pointer to the newly pushed object.
+//               On failure, returns a null pointer. */
+//               static void *
+push (uint8_t *kpage, size_t *offset, const void *buf, size_t size) 
+{
+  size_t padsize = ROUND_UP (size, sizeof (uint32_t));
+  
+  if (*offset < padsize){
+        return NULL;
+  }
+
+  *offset -= padsize;
+                   
+  memcpy (kpage + *offset + (padsize - size), buf, size);
+                            
+  return kpage + *offset + (padsize - size);
+}
 
 /* Starts a new thread running a user program loaded from
    FILENAME.  The new thread may be scheduled (and may even exit)
    before process_execute() returns.  Returns the new process's
    thread id, or TID_ERROR if the thread cannot be created. */
+
 
 tid_t
 process_execute (const char *file_name) 
@@ -61,21 +91,21 @@ process_execute (const char *file_name)
   strlcpy (fn_copy, file_name, PGSIZE);
   */
 
-  //add program name to thread_name, watch out for the size, strtok_r....
-  //program name is the first token of file_Name
+  //add program name to thread_name, watch out for the size, strtok_r.... ###
+  //program name is the first token of file_Name ###
 
 
   //change file_name in thread_create to thread_name
   /* Create a new thread to execute FILE_NAME. */
-  tid = thread_create (file_name, PRI_DEFAULT, start_process, fn_copy); //remove fn_copy, add exec to the end of these params, a void is allowed. look in thread_create, kf->aux is set to thread_create aux which would be xec. so make good use of exec helper!
-  if (tid != TID_ERROR) { //change to !=
+  tid = thread_create (file_name, PRI_DEFAULT, start_process, fn_copy); //remove fn_copy, add exec to the end of these params, a void is allowed. look in thread_create, kf->aux is set to thread_create aux which would be xec. so make good use of exec helper ###
+  if (tid != TID_ERROR) { //change to != ###
 
-  //down a semaphore for loading (where should you up it?)
-  //if program load successfull, add new child to the list of this thread's children (mind your list_elems)... we need to check this list in process wait, when children are done, process wait can finish... see process wait...
-  //else TID_ERROR
+  //down a semaphore for loading (where should you up it?) ###
+  //if program load successfull, add new child to the list of this thread's children (mind your list_elems)... we need to check this list in process wait, when children are done, process wait can finish... see process wait... $$$
+  //else TID_ERROR ###
 
 
-    //palloc_free_page (fn_copy); 
+    //palloc_free_page (fn_copy); //removed ###
   return tid;
 }
 
@@ -240,7 +270,7 @@ static bool load_segment (struct file *file, off_t ofs, uint8_t *upage,
    and its initial stack pointer into *ESP.
    Returns true if successful, false otherwise. */
 bool
-load (const char *file_name, void (**eip) (void), void **esp) //change file name to cmd_line
+load (const char *file_name, void (**eip) (void), void **esp) //change file name to cmd_line ###
 {
   struct thread *t = thread_current ();
 
